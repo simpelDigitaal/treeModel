@@ -1,0 +1,29 @@
+{
+    "name": "simpeldigitaal/tree-model",
+    "description": "Adds a tree to Eloquent Models.",
+    "require": {
+        "php": "^7.1",
+        "illuminate/database": "~5.7.0",
+        "illuminate/support": "~5.7.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Niels Ballemans",
+            "email": "niels@simpeldigitaal.nl"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "SimpelDigitaal\\TreeModel\\": "src"
+        }
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SimpelDigitaal\\TreeModel\\TreeModelServiceProvider"
+            ]
+        }
+    }
+}
