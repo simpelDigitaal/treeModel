@@ -36,5 +36,22 @@ class TreeModelServiceProvider extends ServiceProvider
 
             $this->foreign($name)->references('id')->on($this->getTable());
         });
+        
+        Blueprint::macro('dropTree', function ($prefix = 'tree') {
+            $this->dropColumn([
+                "{$prefix}_start",
+                "{$prefix}_end"
+            ]);
+        });
+
+        Blueprint::macro('dropTreeWithId', function ($name = 'parent_id', $prefix = 'tree') {
+            $this->dropForeign([$name]);
+
+            $this->dropColumn([
+                $name,
+                "{$prefix}_start",
+                "{$prefix}_end"
+            ]);
+        });
     }
 }
