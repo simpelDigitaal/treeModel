@@ -4,6 +4,7 @@
 namespace SimpelDigitaal\TreeModel\Concerns;
 
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 trait BuildsTree
@@ -43,6 +44,14 @@ trait BuildsTree
      */
     abstract function getTreeEndName();
 
+
+    /**
+     * Get a new query builder that doesn't have any global scopes or eager loading.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    abstract public function newModelQuery();
+
     /**
      * Builds up a tree on a model.
      */
@@ -56,10 +65,10 @@ trait BuildsTree
         ];
 
         $getModelList = function ($parentId = null) use ($fields) {
-            return DB::table($this->getTable())->where($this->getParentKeyName(), '=', $parentId)->get($fields);
+            return $this->newModelQuery()->where($this->getParentKeyName(), '=', $parentId)->get($fields);
         };
 
-        $builder = function ($model, $start) use ($getModelList, &$builder) {
+        $builder = function (Model $model, $start) use ($getModelList, &$builder) {
 
             $end = $start + 1;
             $children = $getModelList($model->{$this->getKeyName()});
@@ -69,18 +78,20 @@ trait BuildsTree
                     $end = $builder($child, $end);
                 }
             }
-            DB::table($this->getTable())->where('id', $model->{$this->getKeyName()})->update([
-                $this->getTreeStartName() => $start,
-                $this->getTreeEndName() => $end
-            ]);
+
+            $model->setAttribute($this->getTreeStartName(), $start);
+            $model->setAttribute($this->getTreeEndName(), $end);
+            $model->save();
             return ($end + 1);
         };
 
-        $categories = $getModelList();
-        $nextStart = 1;
-        foreach($categories as $category) {
-            $nextStart = $builder($category, $nextStart);
-        }
+        DB::transaction(function () use ($getModelList, $builder) {
+            $categories = $getModelList();
+            $nextStart = 1;
+            foreach($categories as $category) {
+                $nextStart = $builder($category, $nextStart);
+            }
+        });
     }
 
 }
